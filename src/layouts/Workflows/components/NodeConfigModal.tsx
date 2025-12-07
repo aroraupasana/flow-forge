@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import type { NodeDetails, NodeParam, WorkflowNode } from "@/types/workflow";
 import { getNodeDetails } from "@/services/api";
 
@@ -22,14 +22,7 @@ export default function NodeConfigModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (node && isOpen) {
-      loadNodeDetails();
-      setParams(node.params || {});
-    }
-  }, [node, isOpen]);
-
-  const loadNodeDetails = async () => {
+  const loadNodeDetails = useCallback(async () => {
     if (!node) return;
 
     try {
@@ -45,7 +38,14 @@ export default function NodeConfigModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [node]);
+
+  useEffect(() => {
+    if (node && isOpen) {
+      loadNodeDetails();
+      setParams(node.params || {});
+    }
+  }, [node, isOpen, loadNodeDetails]);
 
   const handleParamChange = (key: string, value: unknown) => {
     setParams((prev) => ({
@@ -78,7 +78,7 @@ export default function NodeConfigModal({
             value={stringValue}
             onChange={(e) => handleParamChange(key, e.target.value)}
             placeholder={param.hint || key}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
           />
         );
 
@@ -87,7 +87,7 @@ export default function NodeConfigModal({
           <select
             value={stringValue}
             onChange={(e) => handleParamChange(key, e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
           >
             <option value="">Select an option</option>
             {param.allowedValues?.map((option) => (
@@ -112,7 +112,7 @@ export default function NodeConfigModal({
                     newList[index] = e.target.value;
                     handleParamChange(key, newList);
                   }}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-gray-900 bg-white"
                 />
                 <button
                   onClick={() => {
@@ -151,7 +151,7 @@ export default function NodeConfigModal({
               }
             }}
             placeholder={param.hint || key}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
             rows={3}
           />
         );
