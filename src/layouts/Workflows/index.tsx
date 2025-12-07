@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import WorkflowCanvas from "@/layouts/Workflows/components/WorkflowCanvas";
 import NodeSidebar from "@/layouts/Workflows/components/NodeSidebar";
 import NodeConfigModal from "@/layouts/Workflows/components/NodeConfigModal";
 import WorkflowHeader from "@/layouts/Workflows/components/WorkflowHeader";
 import WorkflowErrorBanner from "@/layouts/Workflows/components/WorkflowErrorBanner";
+import WorkflowSuccessBanner from "@/layouts/Workflows/components/WorkflowSuccessBanner";
 import WorkflowLoading from "@/layouts/Workflows/components/WorkflowLoading";
 import { useWorkflow } from "@/lib/hooks/useWorkflow";
 import { useNodeManagement } from "@/lib/hooks/useNodeManagement";
@@ -28,10 +29,12 @@ export default function WorkflowBuilder({ workflowId }: WorkflowBuilderProps) {
     loading,
     saving,
     error,
+    successMessage,
     setNodes,
     setEdges,
     loadWorkflow,
     saveWorkflow,
+    setSuccessMessage,
   } = useWorkflow(workflowId);
 
   const {
@@ -48,6 +51,13 @@ export default function WorkflowBuilder({ workflowId }: WorkflowBuilderProps) {
 
   const { reactFlowWrapper, handleDragStart, handleDrop, handleDragOver } =
     useDragAndDrop(setNodes);
+
+  const handleDeleteNodeWithMessage = useCallback(() => {
+    if (!selectedNode) return;
+    const nodeName = selectedNode.nodeName || selectedNode.nodeId;
+    handleDeleteNode();
+    setSuccessMessage(`Node "${nodeName}" deleted successfully`);
+  }, [selectedNode, handleDeleteNode, setSuccessMessage]);
 
   if (loading) {
     return <WorkflowLoading workflowId={workflowId} />;
@@ -72,7 +82,7 @@ export default function WorkflowBuilder({ workflowId }: WorkflowBuilderProps) {
           onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)}
           onSave={saveWorkflow}
           onConfigureNode={() => setIsConfigModalOpen(true)}
-          onDeleteNode={handleDeleteNode}
+          onDeleteNode={handleDeleteNodeWithMessage}
         />
         <div
           ref={reactFlowWrapper}
@@ -92,6 +102,12 @@ export default function WorkflowBuilder({ workflowId }: WorkflowBuilderProps) {
           />
         </div>
         {error && <WorkflowErrorBanner error={error} onRetry={loadWorkflow} />}
+        {successMessage && (
+          <WorkflowSuccessBanner
+            message={successMessage}
+            onDismiss={() => setSuccessMessage(null)}
+          />
+        )}
       </div>
       <NodeConfigModal
         node={selectedNode}

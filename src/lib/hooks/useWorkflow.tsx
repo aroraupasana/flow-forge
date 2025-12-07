@@ -17,6 +17,7 @@ export const useWorkflow = (workflowId: string) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const loadWorkflow = useCallback(async () => {
     try {
@@ -53,6 +54,7 @@ export const useWorkflow = (workflowId: string) => {
     try {
       setSaving(true);
       setError(null);
+      setSuccessMessage(null);
 
       const updatedDefinition: WorkflowDefinition = {
         ...workflow,
@@ -60,12 +62,11 @@ export const useWorkflow = (workflowId: string) => {
         edges,
       };
       await updateWorkflow(workflowId, updatedDefinition);
-      alert("Workflow saved successfully!");
+      setSuccessMessage("Workflow saved successfully!");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to save workflow";
       setError(errorMessage);
-      alert(`Error saving workflow: ${errorMessage}`);
       console.error("Error saving workflow:", err);
     } finally {
       setSaving(false);
@@ -84,9 +85,11 @@ export const useWorkflow = (workflowId: string) => {
     loading,
     saving,
     error,
+    successMessage,
     setNodes,
     setEdges,
     loadWorkflow,
     saveWorkflow,
+    setSuccessMessage,
   };
 };

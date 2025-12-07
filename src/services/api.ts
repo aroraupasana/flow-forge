@@ -6,6 +6,7 @@ import type {
   UpdateWorkflowResponse,
   RawWorkflowResponse,
 } from "@/types/workflow";
+import { transformWorkflowForApi } from "@/lib/utils/workflowTransform";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -202,6 +203,26 @@ export const updateWorkflow = async (
   workflowId: string,
   definition: WorkflowDefinition
 ): Promise<UpdateWorkflowResponse> => {
-  const response = await api.put(`/workflow/update/${workflowId}`, definition);
-  return response.data;
+  try {
+    const rawDefinition = transformWorkflowForApi(definition);
+
+    const payload = {
+      workflowName: definition.workflowName,
+      ...rawDefinition,
+    };
+
+    const response = await api.put(`/workflow/update/${workflowId}`, payload);
+    return response.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.detail ||
+          error.message ||
+          `Failed to update workflow: ${
+            error.response?.statusText || "Unknown error"
+          }`
+      );
+    }
+    throw error;
+  }
 };
